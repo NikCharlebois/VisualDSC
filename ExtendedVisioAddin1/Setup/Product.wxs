@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Wix Project template to install Visio components -->
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+	xmlns:visio="http://schemas.microsoft.com/wix/Visio">
+
+  <?define Version="0.0.0.5"?>
+  <?define ProductCode = "{c8584d0e-3cca-4b45-b61b-e06a8ad30178}" ?>
+  <?define UpgradeCode = "{18d45038-9b53-4cba-9a4a-9d16edc03951}" ?>
+    
+  <Product Id="$(var.ProductCode)" Name="Visual DSC" Language="1033" Version="$(var.Version)" Manufacturer="Microsoft PFE Canada" UpgradeCode="$(var.UpgradeCode)">
+    
+    <Package InstallerVersion="300" Compressed="yes" />
+    <Icon Id="VisualDSC.ico" SourceFile="VisualDSC.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="VisualDSC.ico" />
+    <PropertyRef Id="NETFRAMEWORK40CLIENT" />
+    <PropertyRef Id="NETFRAMEWORK40FULL" />
+    <PropertyRef Id="NETFRAMEWORK45" />
+
+    <Condition Message="This application requires .NET Framework 4.0. Please install the .NET Framework then run this installer again.">
+      <![CDATA[Installed OR NETFRAMEWORK40CLIENT OR NETFRAMEWORK40 OR NETFRAMEWORK45]]>
+    </Condition>
+
+    <!-- override default license -->
+    <WixVariable Id="WixUILicenseRtf" Value="Release Notes\0.0.0.5.rtf" />
+    <WixVariable Id="WiXUILogoFile" Value="VisualDSC-smaller.jpg"/>
+
+    <!-- allow major upgrades -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." AllowSameVersionUpgrades="yes" />
+
+    <!-- allow fast installation -->
+    <Property Id="MSIFASTINSTALL" Value="7" />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="ProductFeature" Title="Setup" Level="1">
+      <ComponentGroupRef Id="AddinFiles"/>
+      <ComponentGroupRef Id="VisioFiles"/>
+    </Feature>
+
+    <!-- UI settings -->
+    <UI>
+
+      <UIRef Id="WixUI_Advanced"/>
+      <Property Id="ALLUSERS" Value="2" />
+      <Property Id="ApplicationFolderName" Value="VisualDSC" />
+      <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
+
+      <Publish Dialog="InstallScopeDlg" Control="Next" Property="MSIINSTALLPERUSER" Value="1" >WixAppFolder = "WixPerUserFolder"</Publish>
+      <Publish Dialog="InstallScopeDlg" Control="Next" Property="MSIINSTALLPERUSER" Value="{}" >WixAppFolder = "WixPerMachineFolder"</Publish>
+    </UI>
+
+  </Product>
+
+  <!-- Define default directory structure -->
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="APPLICATIONFOLDER" Name="VisualDSC">
+
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Visio files to be included in setup -->
+    <ComponentGroup Id="VisioFiles" Directory="APPLICATIONFOLDER">
+
+      <Component>
+        <File Name="SharePointDSC.vssx">
+          <visio:PublishStencil MenuPath="VisualDSC\SharePoint DSC" />
+        </File>        
+      </Component>
+      <Component>
+        <File Name="ExchangeDSC.vssx">
+          <visio:PublishStencil MenuPath="VisualDSC\Exchange DSC" />
+        </File>
+      </Component>
+      <Component>
+        <File Name="ActiveDirectoryDSC.vssx">
+          <visio:PublishStencil MenuPath="VisualDSC\ActiveDirectory DSC" />
+        </File>
+      </Component>
+    <Component>
+        <File Name="Desired State.vstx">
+          <visio:PublishTemplate MenuPath="TBDNikOctober26\Desired State" />
+        </File>
+      </Component>
+    </ComponentGroup>
+
+    <!-- Addin files to be included in setup -->
+    <ComponentGroup Id="AddinFiles" Directory="APPLICATIONFOLDER">
+
+      <!-- Add the addin dll to the setup. Reference using project referencing -->
+      <Component>
+        <File Source="$(var.VisualDSC.TargetPath)" >
+
+        </File>
+      </Component>
+
+      <!-- VSTO framework file -->
+      <Component>
+        <File Source="$(var.VisualDSC.TargetDir)Microsoft.Office.Tools.Common.v4.0.Utilities.dll"></File>
+      </Component>
+
+      <!-- Add the addin manifest file -->
+      <Component>
+        <File Source="$(var.VisualDSC.TargetPath).manifest"></File>
+      </Component>
+
+      <!--  The .vsto file is addin discovery file. Set up registry to point to this file using |vstolocal -->
+      <Component>
+        <File Source="$(var.VisualDSC.TargetDir)$(var.VisualDSC.TargetName).vsto">
+          <visio:PublishAddin />
+        </File>
+      </Component>
+
+    </ComponentGroup>
+
+  </Fragment>
+
+</Wix>
